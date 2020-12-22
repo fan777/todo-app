@@ -20,7 +20,7 @@ if (cachedTodos.length > 0) {
 todoForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    let todoTextValue = document.querySelector('#todo-new-item').value;
+    let todoTextValue = document.querySelector('#new-item').value;
     appendTodoList(todoUniqueId, todoTextValue, false);
     cachedTodos.push({todoId: todoUniqueId, todoText: todoTextValue, isCompleted: false});
 
