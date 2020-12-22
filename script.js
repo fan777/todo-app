@@ -1,32 +1,37 @@
 //todos -- add unique id as entry to storage, change storage to reference by id number
 
-const list = document.querySelector('#todo-list');
-const form = document.querySelector('#todo-form');
+let todoUniqueId = 1; // always holds newest unique identifier for newly added todo
+
+const todoList = document.querySelector('#todo-list');
+const todoForm = document.querySelector('#todo-form');
 
 // restore todos for storage and append to html
-let cache = JSON.parse(localStorage.getItem('todos')) || [];
-if (cache.length > 0) {
-    for (let todo of cache) {
-        createLi(todo.todoText, todo.isCompleted);
+let cachedTodos = JSON.parse(localStorage.getItem('savedTodos')) || [];
+if (cachedTodos.length > 0) {
+    for (let todo of cachedTodos) {
+        let todoId = parseInt(todo.todoId);
+        appendTodoList(todoId, todo.todoText, todo.isCompleted);
+        todoUniqueId = parseInt(todoUniqueId) > todoId ? parseInt(todoUniqueId) : todoId; // set to highest id
     }
     todoUniqueId++ // increment id to stay unique
 }
 
 // submit listenenr
-form.addEventListener('submit', function(e) {
+todoForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
     let todoTextValue = document.querySelector('#todo-new-item').value;
-    createLi(todoTextValue, false);
-    cache.push({todoText: todoTextValue, isCompleted: false});
+    appendTodoList(todoUniqueId, todoTextValue, false);
+    cachedTodos.push({todoId: todoUniqueId, todoText: todoTextValue, isCompleted: false});
 
-    form.reset();
-    localStorage.setItem('todos', JSON.stringify(cache));
+    todoUniqueId++; // after adding todo, increment unique id
+    todoForm.reset();
+    localStorage.setItem('savedTodos', JSON.stringify(cachedTodos));
 })
 
-list.addEventListener('click', function(e) {
+todoList.addEventListener('click', function(e) {
     if (e.target.tagName === 'LI') {
-        let currentTodo = cache.find(function(key, index) {
+        let currentTodo = cachedTodos.find(function(key, index) {
             if (parseInt(key.todoId) === parseInt(e.target.dataset.todoId)) {
                 return true;
             }
@@ -34,28 +39,29 @@ list.addEventListener('click', function(e) {
         e.target.classList.toggle('completed');
         currentTodo.isCompleted = currentTodo.isCompleted ? false : true;
     } else if (e.target.tagName === 'BUTTON') {
-        let currentTodo = cache.findIndex(function(key, index) {
+        let currentTodo = cachedTodos.findIndex(function(key, index) {
             if (parseInt(key.todoId) === parseInt(e.target.parentElement.dataset.todoId)) {
                 return true;
             }
         });
-        cache.splice(currentTodo, 1);
+        cachedTodos.splice(currentTodo, 1);
         e.target.parentElement.remove();
     }
-    localStorage.setItem('todos', JSON.stringify(cache));
+    localStorage.setItem('savedTodos', JSON.stringify(cachedTodos));
 })
 
-function createLi(text, completed) {
-    let btn = document.createElement('button');
-    let li = document.createElement('li');
-    
-    btn.innerText = 'x';
-    li.innerText = text;
-    li.completed = completed;
-    if (completed) {
-        li.classList.add('completed');
+function appendTodoList(todoId, todoText, isCompleted) {
+    let removeButton = document.createElement('button');
+    removeButton.innerText = 'x';
+
+    let newTodo = document.createElement('li');
+    newTodo.dataset.todoId = todoId;
+    newTodo.innerText = todoText;
+    newTodo.isCompleted = isCompleted;
+    if (newTodo.isCompleted) {
+        newTodo.classList.add('completed');
     }
 
-    li.append(btn);
-    list.append(li);
+    newTodo.append(removeButton);
+    todoList.append(newTodo);
 }
